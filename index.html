@@ -202,7 +202,7 @@
   <div class="brand-card">
     <div class="logo">
       <!-- Alef Peretz logo placeholder — replace src with your actual logo -->
-      <img src="LOGO_ALEF.png" alt="Alef Peretz" style="width: 100px; height: 100px; object-fit: contain;" />
+      <img src="LOGO.png" alt="Alef Peretz" style="width: 100px; height: 100px; object-fit: contain;" />
     </div>
     <div class="brand-name">Alef Peretz</div>
   </div>
@@ -275,9 +275,9 @@
           const n = parseInt(v.toString().replace(/[^0-9]/g, ''));
           return isNaN(n) ? 0 : n;
         };
-        gold   += cleanVal(cols[13]);
-        silver += cleanVal(cols[14]);
-        bronze += cleanVal(cols[15]);
+        gold   += cleanVal(cols[0]);
+        silver += cleanVal(cols[1]);
+        bronze += cleanVal(cols[2]);
       }
 
       updateCount('gold',   gold);

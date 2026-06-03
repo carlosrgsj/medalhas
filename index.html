@@ -242,119 +242,72 @@
 <script>
   /*
   =====================================================
-  CONFIGURAÇÃO
+  CONFIGURAÇÃO — edite apenas estas 2 linhas:
   =====================================================
-  Publique a planilha como:
-  "Valores separados por tabulação (.tsv)"
+  1. Publique sua Google Sheet como CSV:
+     Arquivo → Compartilhar → Publicar na Web → CSV → Copiar link
+  2. Cole o link abaixo em SHEET_URL
+  =====================================================
+  Formato esperado da planilha (linha 1 = cabeçalho, ignorada):
+    Coluna A  |  Coluna B  |  Coluna C
+       Ouro   |   Prata    |   Bronze
+         3    |     1      |     2
   =====================================================
   */
+  const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRqT5Y2GsuCp7N5_YShMfOtjy7_RN2YKO_EMlWP1F5Y-13HInQ9b-LlwLdX8oOibw/pub?gid=58425361&single=true&output=csv';
 
-  const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRqT5Y2GsuCp7N5_YShMfOtjy7_RN2YKO_EMlWP1F5Y-13HInQ9b-LlwLdX8oOibw/pub?gid=1285833230&single=true&output=tsv';
+  const INTERVAL_MS = 10000; // atualiza a cada 1 minuto
 
-  const INTERVAL_MS = 10000;
+  async function fetchMedals() {
+    try {
+      const res = await fetch(SHEET_URL + '&t=' + Date.now()); // cache-bust
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const text = await res.text();
+      const rows = text.trim().split('\n');
+      if (rows.length < 2) throw new Error('Planilha vazia ou sem dados');
 
-async function fetchMedals() {
-  try {
-
-    const res = await fetch(
-      SHEET_URL +
-      (SHEET_URL.includes('?') ? '&' : '?') +
-      't=' + Date.now(),
-      {
-        cache: 'no-store'
-      }
-    );
-
-    if (!res.ok) {
-      throw new Error('HTTP ' + res.status);
-    }
-
-    const text = await res.text();
-
-    const rows = text
-      .split(/\r?\n/)
-      .filter(row => row.trim() !== '');
-
-    if (rows.length < 2) {
-      throw new Error('Nenhum dado encontrado');
-    }
-
-    const separator = '\t';
-
-    const header = rows[0]
-      .split(separator)
-      .map(v => v.trim());
-
-    const goldIndex = header.indexOf('Ouro');
-    const silverIndex = header.indexOf('Prata');
-    const bronzeIndex = header.indexOf('Bronze');
-
-    if (
-      goldIndex === -1 ||
-      silverIndex === -1 ||
-      bronzeIndex === -1
-    ) {
-      throw new Error(
-        `Colunas não encontradas. Ouro=${goldIndex} Prata=${silverIndex} Bronze=${bronzeIndex}`
-      );
-    }
-
-    let gold = 0;
-    let silver = 0;
-    let bronze = 0;
-
-    const cleanVal = (value) => {
-      if (value === undefined || value === null) {
-        return 0;
+      // Pula linha 1 (cabeçalho) e soma colunas N(13), O(14), P(15)
+      let gold = 0, silver = 0, bronze = 0;
+      for (let i = 1; i < rows.length; i++) {
+        const cols = rows[i].split(',');
+        const cleanVal = (v) => {
+          if (!v) return 0;
+          const n = parseInt(v.toString().replace(/[^0-9]/g, ''));
+          return isNaN(n) ? 0 : n;
+        };
+        gold   += cleanVal(cols[13]);
+        silver += cleanVal(cols[14]);
+        bronze += cleanVal(cols[15]);
       }
 
-      const txt = String(value).trim();
+      updateCount('gold',   gold);
+      updateCount('silver', silver);
+      updateCount('bronze', bronze);
 
-      if (txt === '') {
-        return 0;
-      }
+      document.getElementById('status').textContent =
+        'Atualizado às ' + new Date().toLocaleTimeString('pt-BR') +
+        ' | Ouro:' + gold + ' Prata:' + silver + ' Bronze:' + bronze +
+        ' | Linhas lidas: ' + (rows.length - 1);
 
-      const num = Number(txt);
-
-      return Number.isFinite(num)
-        ? num
-        : 0;
-    };
-
-    for (let i = 1; i < rows.length; i++) {
-
-      const cols = rows[i].split(separator);
-
-      gold += cleanVal(cols[goldIndex]);
-      silver += cleanVal(cols[silverIndex]);
-      bronze += cleanVal(cols[bronzeIndex]);
+    } catch (e) {
+      document.getElementById('status').textContent =
+        'Erro: ' + e.message;
     }
-
-    console.log({
-      gold,
-      silver,
-      bronze,
-      goldIndex,
-      silverIndex,
-      bronzeIndex
-    });
-
-    updateCount('gold', gold);
-    updateCount('silver', silver);
-    updateCount('bronze', bronze);
-
-    document.getElementById('status').textContent =
-      `Atualizado ${new Date().toLocaleTimeString('pt-BR')} | ` +
-      `🥇 ${gold} | 🥈 ${silver} | 🥉 ${bronze}`;
-
-  } catch (e) {
-
-    console.error(e);
-
-    document.getElementById('status').textContent =
-      'Erro: ' + e.message;
   }
-}
+
+  function updateCount(id, value) {
+    const el = document.getElementById(id);
+    const current = parseInt(el.textContent) || 0;
+    if (current !== value) {
+      el.textContent = value;
+      el.classList.add('bump');
+      setTimeout(() => el.classList.remove('bump'), 400);
+    }
+  }
+
+  // Inicia
+  fetchMedals();
+  setInterval(fetchMedals, INTERVAL_MS);
 </script>
 
 </body>

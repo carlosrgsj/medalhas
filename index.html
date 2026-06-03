@@ -271,21 +271,25 @@
       void el.offsetWidth;
       el.classList.add('bump');
 
-      setTimeout(() => {
+      clearTimeout(el._bumpTimer);
+      el._bumpTimer = setTimeout(() => {
         el.classList.remove('bump');
       }, 400);
     }
   }
 
+  let _fetching = false;
+
   async function fetchMedals() {
+    if (_fetching) return;
+    _fetching = true;
+
     const status = document.getElementById('status');
 
     try {
       const response = await fetch(
         `${SHEET_URL}&t=${Date.now()}`,
-        {
-          cache: 'no-store'
-        }
+        { cache: 'no-store' }
       );
 
       if (!response.ok) {
@@ -303,9 +307,8 @@
         throw new Error('A planilha precisa ter cabeçalho e uma linha de dados.');
       }
 
-      const separator = rows[0].includes(';') ? ';' : ',';
+      const separator = rows[1].includes(';') ? ';' : ',';
 
-      // Lê apenas a primeira linha de dados
       const cols = rows[1]
         .split(separator)
         .map(v => v.replace(/"/g, '').trim());
@@ -324,17 +327,14 @@
 
     } catch (error) {
       console.error(error);
-
-      status.textContent =
-        `Erro: ${error.message}`;
+      status.textContent = `Erro: ${error.message}`;
+    } finally {
+      _fetching = false;
+      setTimeout(fetchMedals, INTERVAL_MS);
     }
   }
 
-  // Primeira atualização
   fetchMedals();
-
-  // Atualizações automáticas
-  setInterval(fetchMedals, INTERVAL_MS);
 </script>
 
 </body>

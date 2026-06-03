@@ -27,6 +27,7 @@
       position: relative;
     }
 
+    /* Watermark background text */
     .bg-text {
       position: fixed;
       inset: 0;
@@ -51,6 +52,7 @@
       display: block;
     }
 
+    /* Main layout */
     .wrapper {
       position: relative;
       z-index: 1;
@@ -62,6 +64,7 @@
       max-width: 860px;
     }
 
+    /* Brand card */
     .brand-card {
       background: var(--card-bg);
       border-radius: 12px;
@@ -74,10 +77,9 @@
       gap: 16px;
     }
 
-    .brand-card img {
+    .brand-card .logo svg {
       width: 100px;
       height: 100px;
-      object-fit: contain;
     }
 
     .brand-name {
@@ -90,6 +92,7 @@
       text-transform: uppercase;
     }
 
+    /* Medal cards */
     .medals-row {
       display: flex;
       gap: 12px;
@@ -109,6 +112,7 @@
       position: relative;
     }
 
+    /* Medal ribbon */
     .medal-ribbon {
       width: 28px;
       height: 60px;
@@ -118,6 +122,7 @@
       flex-shrink: 0;
     }
 
+    /* Medal circle */
     .medal-circle {
       width: 90px;
       height: 90px;
@@ -146,6 +151,7 @@
       line-height: 1;
     }
 
+    /* Count */
     .medal-count {
       font-family: 'Barlow Condensed', sans-serif;
       font-weight: 900;
@@ -160,6 +166,7 @@
       transform: scale(1.15);
     }
 
+    /* Loading / error state */
     .status-bar {
       position: fixed;
       bottom: 16px;
@@ -178,6 +185,7 @@
 </head>
 <body>
 
+<!-- Watermark background -->
 <div class="bg-text" aria-hidden="true">
   <span>MEDALHAS MEDALHAS MEDALHAS MEDALHAS MEDALHAS</span>
   <span>MEDALHAS MEDALHAS MEDALHAS MEDALHAS MEDALHAS</span>
@@ -190,11 +198,22 @@
 
 <main class="wrapper">
 
+  <!-- Brand card -->
   <div class="brand-card">
-    <img src="LOGO.png" alt="Alef Peretz" />
+    <div class="logo">
+      <!-- Alef Peretz logo placeholder — replace src with your actual logo -->
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <!-- White half-circle with X design matching the reference -->
+        <path d="M10 60 A40 40 0 0 1 90 60 Z" fill="white"/>
+        <line x1="25" y1="25" x2="75" y2="65" stroke="rgba(47,196,232,0.9)" stroke-width="5" stroke-linecap="round"/>
+        <line x1="75" y1="25" x2="25" y2="65" stroke="rgba(47,196,232,0.9)" stroke-width="5" stroke-linecap="round"/>
+        <line x1="50" y1="20" x2="50" y2="65" stroke="rgba(47,196,232,0.9)" stroke-width="5" stroke-linecap="round"/>
+      </svg>
+    </div>
     <div class="brand-name">Alef Peretz</div>
   </div>
 
+  <!-- Medal cards -->
   <div class="medals-row">
 
     <div class="medal-card">
@@ -227,62 +246,64 @@
 <div class="status-bar" id="status">Carregando...</div>
 
 <script>
-  console.log('✨ Dashboard iniciado');
-
+  /*
+  =====================================================
+  CONFIGURAÇÃO — edite apenas estas 2 linhas:
+  =====================================================
+  1. Publique sua Google Sheet como CSV:
+     Arquivo → Compartilhar → Publicar na Web → CSV → Copiar link
+  2. Cole o link abaixo em SHEET_URL
+  =====================================================
+  Formato esperado da planilha (linha 1 = cabeçalho, ignorada):
+    Coluna A  |  Coluna B  |  Coluna C
+       Ouro   |   Prata    |   Bronze
+         3    |     1      |     2
+  =====================================================
+  */
   const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRqT5Y2GsuCp7N5_YShMfOtjy7_RN2YKO_EMlWP1F5Y-13HInQ9b-LlwLdX8oOibw/pub?gid=1285833230&single=true&output=tsv';
-  const INTERVAL_MS = 10000;
 
-  async function fetchAndUpdate() {
-    console.log('🔄 Buscando dados...');
+  const INTERVAL_MS = 10000; // atualiza a cada 10 segundos
+
+  async function fetchMedals() {
     try {
-      const res = await fetch(SHEET_URL + '&t=' + Date.now());
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
+      const res = await fetch(SHEET_URL + '&t=' + Date.now()); // cache-bust
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       const text = await res.text();
-      console.log('📊 Recebido:', text.length, 'caracteres');
-      const lines = text.split('\n').filter(l => l.trim());
+      const rows = text.trim().split('\n');
+      if (rows.length < 2) throw new Error('Planilha vazia ou sem dados');
 
-      if (lines.length < 2) throw new Error('Sem dados');
+      // Linha 2 (índice 1) = dados; pula cabeçalho
+      const cols = rows[1].split(',');
+      const gold   = parseInt(cols[0]) || 0;
+      const silver = parseInt(cols[1]) || 0;
+      const bronze = parseInt(cols[2]) || 0;
 
-      let gold = 0, silver = 0, bronze = 0;
+      updateCount('gold',   gold);
+      updateCount('silver', silver);
+      updateCount('bronze', bronze);
 
-      for (let i = 1; i < lines.length; i++) {
-        const cols = lines[i].split('\t');
-        gold += parseFloat(cols[13]) || 0;    // Coluna N
-        silver += parseFloat(cols[14]) || 0;  // Coluna O
-        bronze += parseFloat(cols[15]) || 0;  // Coluna P
-      }
-
-      console.log('✅ Totais:', { gold, silver, bronze });
-      updateDisplay(gold, silver, bronze);
       document.getElementById('status').textContent =
-        `Atualizado ${new Date().toLocaleTimeString('pt-BR')} | 🥇 ${Math.round(gold)} | 🥈 ${Math.round(silver)} | 🥉 ${Math.round(bronze)}`;
+        'Atualizado às ' + new Date().toLocaleTimeString('pt-BR');
 
-    } catch (err) {
-      document.getElementById('status').textContent = '❌ Erro: ' + err.message;
+    } catch (e) {
+      document.getElementById('status').textContent =
+        'Erro ao carregar dados: ' + e.message;
     }
   }
 
-  function updateDisplay(gold, silver, bronze) {
-    const update = (id, value) => {
-      const el = document.getElementById(id);
-      const v = Math.round(value);
-      if (parseInt(el.textContent) !== v) {
-        el.textContent = v;
-        el.classList.remove('bump');
-        void el.offsetWidth;
-        el.classList.add('bump');
-        setTimeout(() => el.classList.remove('bump'), 300);
-      }
-    };
-    update('gold', gold);
-    update('silver', silver);
-    update('bronze', bronze);
+  function updateCount(id, value) {
+    const el = document.getElementById(id);
+    const current = parseInt(el.textContent) || 0;
+    if (current !== value) {
+      el.textContent = value;
+      el.classList.add('bump');
+      setTimeout(() => el.classList.remove('bump'), 400);
+    }
   }
 
-  fetchAndUpdate();
-  setInterval(fetchAndUpdate, INTERVAL_MS);
+  // Inicia
+  fetchMedals();
+  setInterval(fetchMedals, INTERVAL_MS);
 </script>
 
 </body>

@@ -272,11 +272,15 @@
       const rows = text.trim().split('\n');
       if (rows.length < 2) throw new Error('Planilha vazia ou sem dados');
 
-      // Linha 2 (índice 1) = dados; pula cabeçalho
-      const cols = rows[1].split(',');
-      const gold   = parseInt(cols[0]) || 0;
-      const silver = parseInt(cols[1]) || 0;
-      const bronze = parseInt(cols[2]) || 0;
+      let gold = 0, silver = 0, bronze = 0;
+
+      // Soma TODAS as linhas (pula cabeçalho em rows[0])
+      for (let i = 1; i < rows.length; i++) {
+        const cols = rows[i].split('\t'); // TSV usa tabulação
+        gold   += parseInt(cols[13]) || 0;  // Coluna N
+        silver += parseInt(cols[14]) || 0;  // Coluna O
+        bronze += parseInt(cols[15]) || 0;  // Coluna P
+      }
 
       updateCount('gold',   gold);
       updateCount('silver', silver);

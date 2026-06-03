@@ -202,7 +202,7 @@
   <div class="brand-card">
     <div class="logo">
       <!-- Alef Peretz logo placeholder — replace src with your actual logo -->
-      <img src="LOGO.png" alt="Alef Peretz" style="width: 100px; height: 100px; object-fit: contain;" />
+      <img src="LOGO_ALEF.png" alt="Alef Peretz" style="width: 100px; height: 100px; object-fit: contain;" />
     </div>
     <div class="brand-name">Alef Peretz</div>
   </div>
@@ -254,9 +254,9 @@
          3    |     1      |     2
   =====================================================
   */
-  const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRqT5Y2GsuCp7N5_YShMfOtjy7_RN2YKO_EMlWP1F5Y-13HInQ9b-LlwLdX8oOibw/pub?gid=1285833230&single=true&output=csv';
+  const SHEET_URL = 'COLE_AQUI_O_LINK_CSV_DA_PLANILHA';
 
-  const INTERVAL_MS = 10000; // atualiza a cada 10 segundos
+  const INTERVAL_MS = 60000; // atualiza a cada 10 segundos
 
   async function fetchMedals() {
     try {
@@ -266,11 +266,14 @@
       const rows = text.trim().split('\n');
       if (rows.length < 2) throw new Error('Planilha vazia ou sem dados');
 
-      // Linha 2 (índice 1) = dados; pula cabeçalho
-      const cols = rows[1].split(',');
-      const gold   = parseInt(cols[13]) || 0;
-      const silver = parseInt(cols[14]) || 0;
-      const bronze = parseInt(cols[15]) || 0;
+      // Pula linha 1 (cabeçalho) e soma colunas N, O, P de todas as linhas
+      let gold = 0, silver = 0, bronze = 0;
+      for (let i = 1; i < rows.length; i++) {
+        const cols = rows[i].split(',');
+        gold   += parseInt(cols[13]) || 0;
+        silver += parseInt(cols[14]) || 0;
+        bronze += parseInt(cols[15]) || 0;
+      }
 
       updateCount('gold',   gold);
       updateCount('silver', silver);

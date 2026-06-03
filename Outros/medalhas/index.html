@@ -266,17 +266,27 @@
 
   async function fetchMedals() {
     try {
-      const res = await fetch(SHEET_URL + '&t=' + Date.now()); // cache-bust
+      console.log('🔄 Buscando dados...');
+      const res = await fetch(SHEET_URL + '&t=' + Date.now());
+      console.log('📡 Status:', res.status);
+
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const text = await res.text();
+      console.log('📝 Texto recebido:', text);
+
       const rows = text.trim().split('\n');
+      console.log('📊 Linhas:', rows);
+
       if (rows.length < 2) throw new Error('Planilha vazia ou sem dados');
 
-      // Linha 2 (índice 1) = dados; pula cabeçalho
       const cols = rows[1].split(',');
-      const gold   = parseInt(cols[0]) || 0;  // Coluna A
-      const silver = parseInt(cols[1]) || 0;  // Coluna B
-      const bronze = parseInt(cols[2]) || 0;  // Coluna C
+      console.log('📋 Colunas:', cols);
+
+      const gold   = parseInt(cols[0]) || 0;
+      const silver = parseInt(cols[1]) || 0;
+      const bronze = parseInt(cols[2]) || 0;
+
+      console.log('✅ Valores:', { gold, silver, bronze });
 
       updateCount('gold',   gold);
       updateCount('silver', silver);
@@ -286,8 +296,9 @@
         'Atualizado às ' + new Date().toLocaleTimeString('pt-BR');
 
     } catch (e) {
+      console.error('❌ Erro:', e);
       document.getElementById('status').textContent =
-        'Erro ao carregar dados: ' + e.message;
+        'Erro: ' + e.message;
     }
   }
 

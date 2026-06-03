@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Alef Peretz — Medalhas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue: #2FC4E8;
+      --dark: #1a1a1a;
+      --card-bg: #2FC4E8;
+      --text-white: #ffffff;
+      --ribbon: #8B1A1A;
+    }
+
+    body {
+      background-color: var(--dark);
+      font-family: 'Barlow', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Watermark background text */
+    .bg-text {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .bg-text span {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: clamp(60px, 10vw, 110px);
+      color: rgba(255,255,255,0.07);
+      text-transform: uppercase;
+      white-space: nowrap;
+      line-height: 1;
+      letter-spacing: -1px;
+      display: block;
+    }
+
+    /* Main layout */
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: stretch;
+      gap: 12px;
+      padding: 40px 32px;
+      width: 100%;
+      max-width: 860px;
+    }
+
+    /* Brand card */
+    .brand-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      flex: 0 0 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      gap: 16px;
+    }
+
+    .brand-card .logo svg {
+      width: 100px;
+      height: 100px;
+    }
+
+    .brand-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 22px;
+      color: var(--text-white);
+      text-align: center;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* Medal cards */
+    .medals-row {
+      display: flex;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .medal-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 16px 32px;
+      gap: 12px;
+      position: relative;
+    }
+
+    /* Medal ribbon */
+    .medal-ribbon {
+      width: 28px;
+      height: 60px;
+      background: var(--ribbon);
+      clip-path: polygon(0 0, 100% 0, 100% 85%, 50% 100%, 0 85%);
+      border-radius: 2px 2px 0 0;
+      flex-shrink: 0;
+    }
+
+    /* Medal circle */
+    .medal-circle {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .medal-circle::before {
+      content: '';
+      position: absolute;
+      inset: 6px;
+      border-radius: 50%;
+      border: 4px solid rgba(255,255,255,0.25);
+    }
+
+    .medal-gold   { background: #F5A623; box-shadow: 0 0 0 5px #D4881B; }
+    .medal-silver { background: #9E9E9E; box-shadow: 0 0 0 5px #7A7A7A; }
+    .medal-bronze { background: #C8762A; box-shadow: 0 0 0 5px #A05A18; }
+
+    .medal-icon {
+      font-size: 36px;
+      line-height: 1;
+    }
+
+    /* Count */
+    .medal-count {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: clamp(56px, 8vw, 80px);
+      color: var(--text-white);
+      line-height: 1;
+      letter-spacing: -2px;
+      transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
+    }
+
+    .medal-count.bump {
+      transform: scale(1.15);
+    }
+
+    /* Loading / error state */
+    .status-bar {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.6);
+      color: rgba(255,255,255,0.6);
+      font-size: 11px;
+      padding: 4px 14px;
+      border-radius: 20px;
+      z-index: 10;
+      font-family: monospace;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Watermark background -->
+<div class="bg-text" aria-hidden="true">
+  <span>MEDALHAS MEDALHAS MEDALHAS MEDALHAS MEDALHAS</span>
+  <span>MEDALHAS MEDALHAS MEDALHAS MEDALHAS MEDALHAS</span>
+  <span>MEDALHAS MEDALHAS MEDALHAS MEDALHAS MEDALHAS</span>
+  <span>MEDALHAS MEDALHAS MEDALHAS MEDALHAS MEDALHAS</span>
+  <span>MEDALHAS MEDALHAS MEDALHAS MEDALHAS MEDALHAS</span>
+  <span>MEDALHAS MEDALHAS MEDALHAS MEDALHAS MEDALHAS</span>
+  <span>MEDALHAS MEDALHAS MEDALHAS MEDALHAS MEDALHAS</span>
+</div>
+
+<main class="wrapper">
+
+  <!-- Brand card -->
+  <div class="brand-card">
+    <div class="logo">
+      <!-- Alef Peretz logo placeholder — replace src with your actual logo -->
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <!-- White half-circle with X design matching the reference -->
+        <path d="M10 60 A40 40 0 0 1 90 60 Z" fill="white"/>
+        <line x1="25" y1="25" x2="75" y2="65" stroke="rgba(47,196,232,0.9)" stroke-width="5" stroke-linecap="round"/>
+        <line x1="75" y1="25" x2="25" y2="65" stroke="rgba(47,196,232,0.9)" stroke-width="5" stroke-linecap="round"/>
+        <line x1="50" y1="20" x2="50" y2="65" stroke="rgba(47,196,232,0.9)" stroke-width="5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="brand-name">Alef Peretz</div>
+  </div>
+
+  <!-- Medal cards -->
+  <div class="medals-row">
+
+    <div class="medal-card">
+      <div class="medal-ribbon"></div>
+      <div class="medal-circle medal-gold">
+        <span class="medal-icon">🥇</span>
+      </div>
+      <div class="medal-count" id="gold">0</div>
+    </div>
+
+    <div class="medal-card">
+      <div class="medal-ribbon"></div>
+      <div class="medal-circle medal-silver">
+        <span class="medal-icon">🥈</span>
+      </div>
+      <div class="medal-count" id="silver">0</div>
+    </div>
+
+    <div class="medal-card">
+      <div class="medal-ribbon"></div>
+      <div class="medal-circle medal-bronze">
+        <span class="medal-icon">🥉</span>
+      </div>
+      <div class="medal-count" id="bronze">0</div>
+    </div>
+
+  </div>
+</main>
+
+<div class="status-bar" id="status">Carregando...</div>
+
+<script>
+  /*
+  =====================================================
+  CONFIGURAÇÃO — edite apenas estas 2 linhas:
+  =====================================================
+  1. Publique sua Google Sheet como CSV:
+     Arquivo → Compartilhar → Publicar na Web → CSV → Copiar link
+  2. Cole o link abaixo em SHEET_URL
+  =====================================================
+  Formato esperado da planilha (linha 1 = cabeçalho, ignorada):
+    Coluna A  |  Coluna B  |  Coluna C
+       Ouro   |   Prata    |   Bronze
+         3    |     1      |     2
+  =====================================================
+  */
+  const SHEET_URL = 'COLE_AQUI_O_LINK_CSV_DA_PLANILHA';
+
+  const INTERVAL_MS = 10000; // atualiza a cada 10 segundos
+
+  async function fetchMedals() {
+    try {
+      const res = await fetch(SHEET_URL + '&t=' + Date.now()); // cache-bust
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const text = await res.text();
+      const rows = text.trim().split('\n');
+      if (rows.length < 2) throw new Error('Planilha vazia ou sem dados');
+
+      // Linha 2 (índice 1) = dados; pula cabeçalho
+      const cols = rows[1].split(',');
+      const gold   = parseInt(cols[0]) || 0;
+      const silver = parseInt(cols[1]) || 0;
+      const bronze = parseInt(cols[2]) || 0;
+
+      updateCount('gold',   gold);
+      updateCount('silver', silver);
+      updateCount('bronze', bronze);
+
+      document.getElementById('status').textContent =
+        'Atualizado às ' + new Date().toLocaleTimeString('pt-BR');
+
+    } catch (e) {
+      document.getElementById('status').textContent =
+        'Erro ao carregar dados: ' + e.message;
+    }
+  }
+
+  function updateCount(id, value) {
+    const el = document.getElementById(id);
+    const current = parseInt(el.textContent) || 0;
+    if (current !== value) {
+      el.textContent = value;
+      el.classList.add('bump');
+      setTimeout(() => el.classList.remove('bump'), 400);
+    }
+  }
+
+  // Inicia
+  fetchMedals();
+  setInterval(fetchMedals, INTERVAL_MS);
+</script>
+
+</body>
+</html>

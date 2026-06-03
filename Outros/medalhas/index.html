@@ -255,6 +255,7 @@
 
 async function fetchMedals() {
   try {
+    console.log('🔄 Iniciando fetch...');
 
     const res = await fetch(
       SHEET_URL +
@@ -265,15 +266,20 @@ async function fetchMedals() {
       }
     );
 
+    console.log('📡 Response status:', res.status);
+
     if (!res.ok) {
       throw new Error('HTTP ' + res.status);
     }
 
     const text = await res.text();
+    console.log('📝 Recebido:', text.length, 'caracteres');
 
     const rows = text
       .split(/\r?\n/)
       .filter(row => row.trim() !== '');
+
+    console.log('📊 Total de linhas:', rows.length);
 
     if (rows.length < 2) {
       throw new Error('Nenhum dado encontrado');
@@ -285,9 +291,13 @@ async function fetchMedals() {
       .split(separator)
       .map(v => v.trim());
 
+    console.log('📋 Header:', header);
+
     const goldIndex = header.indexOf('Ouro');
     const silverIndex = header.indexOf('Prata');
     const bronzeIndex = header.indexOf('Bronze');
+
+    console.log('🏅 Índices:', { goldIndex, silverIndex, bronzeIndex });
 
     if (
       goldIndex === -1 ||
@@ -330,13 +340,10 @@ async function fetchMedals() {
       bronze += cleanVal(cols[bronzeIndex]);
     }
 
-    console.log({
+    console.log('✅ Totais calculados:', {
       gold,
       silver,
-      bronze,
-      goldIndex,
-      silverIndex,
-      bronzeIndex
+      bronze
     });
 
     updateCount('gold', gold);

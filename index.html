@@ -258,33 +258,17 @@
   const SHEET_URL =
     'https://docs.google.com/spreadsheets/d/e/2PACX-1vRqT5Y2GsuCp7N5_YShMfOtjy7_RN2YKO_EMlWP1F5Y-13HInQ9b-LlwLdX8oOibw/pub?gid=58425361&single=true&output=csv';
 
-  const INTERVAL_MS = 0000; // 10 segundos
-
-  function cleanVal(value) {
-    if (!value) return 0;
-
-    const num = parseInt(
-      value
-        .toString()
-        .replace(/"/g, '')
-        .trim(),
-      10
-    );
-
-    return isNaN(num) ? 0 : num;
-  }
+  const INTERVAL_MS = 10000;
 
   function updateCount(id, value) {
     const el = document.getElementById(id);
-
     const current = parseInt(el.textContent, 10) || 0;
 
     if (current !== value) {
       el.textContent = value;
 
       el.classList.remove('bump');
-      void el.offsetWidth; // força reflow
-
+      void el.offsetWidth;
       el.classList.add('bump');
 
       setTimeout(() => {
@@ -297,15 +281,9 @@
     const status = document.getElementById('status');
 
     try {
-      console.log(
-        'Atualizando:',
-        new Date().toLocaleTimeString('pt-BR')
-      );
-
       const response = await fetch(
-        SHEET_URL + '&nocache=' + Date.now(),
+        `${SHEET_URL}&t=${Date.now()}`,
         {
-          method: 'GET',
           cache: 'no-store'
         }
       );
@@ -316,60 +294,47 @@
 
       const csv = await response.text();
 
-      console.log('CSV recebido:');
-      console.log(csv);
-
       const rows = csv
         .trim()
         .split(/\r?\n/)
         .filter(row => row.trim() !== '');
 
       if (rows.length < 2) {
-        throw new Error('Nenhum dado encontrado');
+        throw new Error('A planilha precisa ter cabeçalho e uma linha de dados.');
       }
 
       const separator = rows[0].includes(';') ? ';' : ',';
 
-      let gold = 0;
-      let silver = 0;
-      let bronze = 0;
+      // Lê apenas a primeira linha de dados
+      const cols = rows[1]
+        .split(separator)
+        .map(v => v.replace(/"/g, '').trim());
 
-      // pula cabeçalho
-      for (let i = 1; i < rows.length; i++) {
-        const cols = rows[i].split(separator);
-
-        gold += cleanVal(cols[0]);
-        silver += cleanVal(cols[1]);
-        bronze += cleanVal(cols[2]);
-      }
+      const gold = parseInt(cols[0], 10) || 0;
+      const silver = parseInt(cols[1], 10) || 0;
+      const bronze = parseInt(cols[2], 10) || 0;
 
       updateCount('gold', gold);
       updateCount('silver', silver);
       updateCount('bronze', bronze);
 
       status.textContent =
-        `Atualizado às ${new Date().toLocaleTimeString('pt-BR')} | ` +
+        `Atualizado: ${new Date().toLocaleTimeString('pt-BR')} | ` +
         `🥇 ${gold} | 🥈 ${silver} | 🥉 ${bronze}`;
+
     } catch (error) {
       console.error(error);
 
       status.textContent =
-        'Erro ao atualizar: ' + error.message;
+        `Erro: ${error.message}`;
     }
   }
 
-  // Primeira carga
+  // Primeira atualização
   fetchMedals();
 
-  // Atualização automática
+  // Atualizações automáticas
   setInterval(fetchMedals, INTERVAL_MS);
-
-  // Atualiza ao voltar para a aba
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-      fetchMedals();
-    }
-  });
 </script>
 
 </body>

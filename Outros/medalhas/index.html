@@ -202,13 +202,7 @@
   <div class="brand-card">
     <div class="logo">
       <!-- Alef Peretz logo placeholder — replace src with your actual logo -->
-      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <!-- White half-circle with X design matching the reference -->
-        <path d="M10 60 A40 40 0 0 1 90 60 Z" fill="white"/>
-        <line x1="25" y1="25" x2="75" y2="65" stroke="rgba(47,196,232,0.9)" stroke-width="5" stroke-linecap="round"/>
-        <line x1="75" y1="25" x2="25" y2="65" stroke="rgba(47,196,232,0.9)" stroke-width="5" stroke-linecap="round"/>
-        <line x1="50" y1="20" x2="50" y2="65" stroke="rgba(47,196,232,0.9)" stroke-width="5" stroke-linecap="round"/>
-      </svg>
+      <img src="LOGO_ALEF.png" alt="Alef Peretz" style="width: 100px; height: 100px; object-fit: contain;" />
     </div>
     <div class="brand-name">Alef Peretz</div>
   </div>
@@ -266,37 +260,36 @@
 
   async function fetchMedals() {
     try {
-      console.log('🔄 Buscando dados...');
-      const res = await fetch(SHEET_URL + '&t=' + Date.now());
-      console.log('📡 Status:', res.status);
-
+      const res = await fetch(SHEET_URL + '&t=' + Date.now()); // cache-bust
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const text = await res.text();
-      console.log('📝 Texto recebido:', text);
-
       const rows = text.trim().split('\n');
-      console.log('📊 Linhas:', rows);
-
       if (rows.length < 2) throw new Error('Planilha vazia ou sem dados');
 
-      const cols = rows[1].split(',');
-      console.log('📋 Colunas:', cols);
-
-      const gold   = parseInt(cols[0]) || 0;
-      const silver = parseInt(cols[1]) || 0;
-      const bronze = parseInt(cols[2]) || 0;
-
-      console.log('✅ Valores:', { gold, silver, bronze });
+      // Pula linha 1 (cabeçalho) e soma colunas N(13), O(14), P(15)
+      let gold = 0, silver = 0, bronze = 0;
+      for (let i = 1; i < rows.length; i++) {
+        const cols = rows[i].split(',');
+        const cleanVal = (v) => {
+          if (!v) return 0;
+          const n = parseInt(v.toString().replace(/[^0-9]/g, ''));
+          return isNaN(n) ? 0 : n;
+        };
+        gold   += cleanVal(cols[13]);
+        silver += cleanVal(cols[14]);
+        bronze += cleanVal(cols[15]);
+      }
 
       updateCount('gold',   gold);
       updateCount('silver', silver);
       updateCount('bronze', bronze);
 
       document.getElementById('status').textContent =
-        'Atualizado às ' + new Date().toLocaleTimeString('pt-BR');
+        'Atualizado às ' + new Date().toLocaleTimeString('pt-BR') +
+        ' | Ouro:' + gold + ' Prata:' + silver + ' Bronze:' + bronze +
+        ' | Linhas lidas: ' + (rows.length - 1);
 
     } catch (e) {
-      console.error('❌ Erro:', e);
       document.getElementById('status').textContent =
         'Erro: ' + e.message;
     }

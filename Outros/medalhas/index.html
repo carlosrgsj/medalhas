@@ -227,16 +227,20 @@
 <div class="status-bar" id="status">Carregando...</div>
 
 <script>
+  console.log('✨ Dashboard iniciado');
+
   const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRqT5Y2GsuCp7N5_YShMfOtjy7_RN2YKO_EMlWP1F5Y-13HInQ9b-LlwLdX8oOibw/pub?gid=1285833230&single=true&output=tsv';
   const INTERVAL_MS = 10000;
 
   async function fetchAndUpdate() {
+    console.log('🔄 Buscando dados...');
     try {
       const res = await fetch(SHEET_URL + '&t=' + Date.now());
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const text = await res.text();
+      console.log('📊 Recebido:', text.length, 'caracteres');
       const lines = text.split('\n').filter(l => l.trim());
 
       if (lines.length < 2) throw new Error('Sem dados');
@@ -250,6 +254,7 @@
         bronze += parseFloat(cols[15]) || 0;  // Coluna P
       }
 
+      console.log('✅ Totais:', { gold, silver, bronze });
       updateDisplay(gold, silver, bronze);
       document.getElementById('status').textContent =
         `Atualizado ${new Date().toLocaleTimeString('pt-BR')} | 🥇 ${Math.round(gold)} | 🥈 ${Math.round(silver)} | 🥉 ${Math.round(bronze)}`;

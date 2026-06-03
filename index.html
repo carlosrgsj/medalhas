@@ -242,70 +242,109 @@
 <script>
   /*
   =====================================================
-  CONFIGURAÇÃO — edite apenas estas 2 linhas:
+  CONFIGURAÇÃO
   =====================================================
-  1. Publique sua Google Sheet como CSV:
-     Arquivo → Compartilhar → Publicar na Web → CSV → Copiar link
-  2. Cole o link abaixo em SHEET_URL
-  =====================================================
-  Formato esperado da planilha (linha 1 = cabeçalho, ignorada):
-    Coluna A  |  Coluna B  |  Coluna C
-       Ouro   |   Prata    |   Bronze
-         3    |     1      |     2
+  Publique a planilha como:
+  "Valores separados por tabulação (.tsv)"
   =====================================================
   */
-  const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRqT5Y2GsuCp7N5_YShMfOtjy7_RN2YKO_EMlWP1F5Y-13HInQ9b-LlwLdX8oOibw/pub?gid=1285833230&single=true&output=csv';
 
-  const INTERVAL_MS = 60000; // atualiza a cada 1 minuto
+  const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRqT5Y2GsuCp7N5_YShMfOtjy7_RN2YKO_EMlWP1F5Y-13HInQ9b-LlwLdX8oOibw/pub?gid=1285833230&single=true&output=tsv';
+
+  const INTERVAL_MS = 10000;
 
   async function fetchMedals() {
     try {
-      const res = await fetch(SHEET_URL + '&t=' + Date.now()); // cache-bust
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const text = await res.text();
-      const rows = text.trim().split('\n');
-      if (rows.length < 2) throw new Error('Planilha vazia ou sem dados');
 
-      // Pula linha 1 (cabeçalho) e soma colunas N(13), O(14), P(15)
-      let gold = 0, silver = 0, bronze = 0;
+      const separator =
+        SHEET_URL.includes('output=tsv') ? '\t' : ',';
+
+      const res = await fetch(
+        SHEET_URL +
+        (SHEET_URL.includes('?') ? '&' : '?') +
+        't=' + Date.now()
+      );
+
+      if (!res.ok) {
+        throw new Error('HTTP ' + res.status);
+      }
+
+      const text = await res.text();
+
+      const rows = text
+        .split(/\r?\n/)
+        .filter(row => row.trim() !== '');
+
+      if (rows.length < 2) {
+        throw new Error('Nenhum dado encontrado');
+      }
+
+      let gold = 0;
+      let silver = 0;
+      let bronze = 0;
+
+      const cleanVal = (value) => {
+        if (!value) return 0;
+
+        const num = parseInt(
+          String(value).trim(),
+          10
+        );
+
+        return isNaN(num) ? 0 : num;
+      };
+
       for (let i = 1; i < rows.length; i++) {
-        const cols = rows[i].split(',');
-        const cleanVal = (v) => {
-          if (!v) return 0;
-          const n = parseInt(v.toString().replace(/[^0-9]/g, ''));
-          return isNaN(n) ? 0 : n;
-        };
-        gold   += cleanVal(cols[13]);
+
+        const cols = rows[i].split(separator);
+
+        // Garante que a linha possui pelo menos até a coluna P
+        if (cols.length < 16) continue;
+
+        // N = índice 13
+        // O = índice 14
+        // P = índice 15
+        gold += cleanVal(cols[13]);
         silver += cleanVal(cols[14]);
         bronze += cleanVal(cols[15]);
       }
 
-      updateCount('gold',   gold);
+      updateCount('gold', gold);
       updateCount('silver', silver);
       updateCount('bronze', bronze);
 
       document.getElementById('status').textContent =
-        'Atualizado às ' + new Date().toLocaleTimeString('pt-BR') +
-        ' | Ouro:' + gold + ' Prata:' + silver + ' Bronze:' + bronze +
-        ' | Linhas lidas: ' + (rows.length - 1);
+        `Atualizado às ${new Date().toLocaleTimeString('pt-BR')} | ` +
+        `🥇 ${gold} | 🥈 ${silver} | 🥉 ${bronze}`;
 
     } catch (e) {
+
+      console.error(e);
+
       document.getElementById('status').textContent =
         'Erro: ' + e.message;
     }
   }
 
   function updateCount(id, value) {
+
     const el = document.getElementById(id);
-    const current = parseInt(el.textContent) || 0;
+
+    const current =
+      parseInt(el.textContent, 10) || 0;
+
     if (current !== value) {
+
       el.textContent = value;
+
       el.classList.add('bump');
-      setTimeout(() => el.classList.remove('bump'), 400);
+
+      setTimeout(() => {
+        el.classList.remove('bump');
+      }, 400);
     }
   }
 
-  // Inicia
   fetchMedals();
   setInterval(fetchMedals, INTERVAL_MS);
 </script>

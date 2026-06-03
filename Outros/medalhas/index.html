@@ -349,10 +349,10 @@ async function fetchMedals() {
 
   } catch (e) {
 
-    console.error(e);
+    console.error('Erro ao buscar medalhas:', e);
 
     document.getElementById('status').textContent =
-      'Erro: ' + e.message;
+      'Erro: ' + (e.message || String(e));
   }
 }
 

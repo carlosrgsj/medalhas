@@ -324,9 +324,8 @@
       updateCount('total', total);
 
 
-      status.textContent =
-        `Atualizado: ${new Date().toLocaleTimeString('pt-BR')} | ` +
-        `🥇 ${gold} | 🥈 ${silver} | 🥉 ${bronze} | Total de Medalhas ${total}`;
+     status.textContent = `Atualizado: ${new Date().toLocaleTimeString('pt-BR')} 
+     | 🥇 ${gold} | 🥈 ${silver} | 🥉 ${bronze} | Total de Medalhas: ${total}`;
 
     } catch (error) {
       console.error(error);

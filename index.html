@@ -316,14 +316,17 @@
       const gold = parseInt(cols[0], 10) || 0;
       const silver = parseInt(cols[1], 10) || 0;
       const bronze = parseInt(cols[2], 10) || 0;
+      const total = parseInt(cols[3], 10) || 0;
 
       updateCount('gold', gold);
       updateCount('silver', silver);
       updateCount('bronze', bronze);
+      updateCount('total', total);
+
 
       status.textContent =
         `Atualizado: ${new Date().toLocaleTimeString('pt-BR')} | ` +
-        `🥇 ${gold} | 🥈 ${silver} | 🥉 ${bronze}`;
+        `🥇 ${gold} | 🥈 ${silver} | 🥉 ${bronze} | Total de Medalhas ${total}`;
 
     } catch (error) {
       console.error(error);
